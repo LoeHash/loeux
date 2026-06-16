@@ -34,7 +34,6 @@ org 0x7c00
         BS_VolLab       db      'Loeux Boot'
         BS_FileSysType  db      'FAT12   '
 
-StartBootMessage: db "Start Booting..."
 
 _start:
         ; 现在是实模式, 只有地址线只有 20根, 寄存器只有16位, 所以需要这些段寄存器来实现1mb的寻址空间
@@ -77,6 +76,9 @@ _start:
 
         loop:
                 jmp loop
+
+
+        
 
         ; 函数传参:
         ;       ax:     磁盘起始扇区号
@@ -122,6 +124,11 @@ _start:
                 add     esp, 1                          ; 重置esp    1
                 pop     bp                              ; 弹出bp
                 ret
+
+
+        StartBootMessage: db "Start Booting..."
+
+
 
         ; ======结束填充数据
         ; 注意这个填充不会腐干tiems之后的数据
