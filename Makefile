@@ -1,3 +1,12 @@
+# 全部构建（默认目标）
+.PHONY: all
+all: boot loader               # 此处可追加其他目标，如 kernel
+	@echo "\033[1;32m✓ All targets built successfully.\033[0m"
+
+# 在这里添加更多扩展规则
+# TODO: e.g. kernel: ...
+# TODO: e.g. image: boot loader ... && ... 
+
 # 引导加载程序（Bootloader）编译与刷入
 .PHONY: boot
 boot:
@@ -16,6 +25,26 @@ boot:
 	@echo "\033[1;36m└─────────────────────────────────────────────────────┘\033[0m"
 	@echo ""
 
-# 清理
+# 第二阶段引导加载程序（Loader）编译
+.PHONY: loader
+loader:
+	@nasm boot/loader.asm -o boot/loader.bin
+	@echo ""
+	@echo "\033[1;36m┌─────────────────────────────────────────────────────┐\033[0m"
+	@echo "\033[1;36m│\033[0m  \033[1;33m    LOEUX Loader successfully compiled!            \033[0m\033[1;36m│\033[0m"
+	@echo "\033[1;36m│\033[0m                                                     \033[1;36m│\033[0m"
+	@echo "\033[1;36m│\033[0m  \033[1;32m  Output: \033[0m boot/loader.bin                         \033[1;36m│\033[0m"
+	@echo "\033[1;36m│\033[0m                                                     \033[1;36m│\033[0m"
+	@echo "\033[1;36m│\033[0m  \033[1;35m         LOEUX - The OS from scratch               \033[0m\033[1;36m│\033[0m"
+	@echo "\033[1;36m└─────────────────────────────────────────────────────┘\033[0m"
+	@echo ""
+
+CLEAN_PATTERNS := *.o *.bin
+
+.PHONY: clean
 clean:
-	@find . -type d \( -name out -o -name obj \) -exec rm -rf {} + 2>/dev/null || true
+	@for pattern in $(CLEAN_PATTERNS); do \
+		find . -type f -name "$$pattern" -exec rm -f {} + 2>/dev/null || true; \
+	done
+	@find . -type d \( -name out -o -name obj -o -name bin \) -exec rm -rf {} + 2>/dev/null || true
+	@echo "\033[1;32m✓ Cleanup done.\033[0m"
