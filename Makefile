@@ -29,6 +29,10 @@ boot:
 .PHONY: loader
 loader:
 	@nasm boot/loader.asm -o boot/loader.bin
+	@sudo mount /work/tools/loeux/boot.img /media/loe -t vfat -o loop
+	@sudo cp boot/loader.bin /media/loe/LOADER.BIN 
+	@sudo sync
+	@sudo umount /media/loe
 	@echo ""
 	@echo "\033[1;36m┌─────────────────────────────────────────────────────┐\033[0m"
 	@echo "\033[1;36m│\033[0m  \033[1;33m    LOEUX Loader successfully compiled!            \033[0m\033[1;36m│\033[0m"
