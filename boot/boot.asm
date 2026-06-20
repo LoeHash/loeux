@@ -1,9 +1,5 @@
 
-
-
-
-
-        org	0x7c00	
+org	0x7c00	
 
 BaseOfStack	equ	0x7c00
 
