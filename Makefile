@@ -1,13 +1,11 @@
-# 全部构建（默认目标）
+CLEAN_PATTERNS := *.o *.bin
+
+
+
 .PHONY: all
-all: boot loader               # 此处可追加其他目标，如 kernel
+all: boot loader kernel               
 	@echo "\033[1;32m✓ All targets built successfully.\033[0m"
 
-# 在这里添加更多扩展规则
-# TODO: e.g. kernel: ...
-# TODO: e.g. image: boot loader ... && ... 
-
-# 引导加载程序（Bootloader）编译与刷入
 .PHONY: boot
 boot:
 	@nasm boot/boot.asm -o boot/boot.bin
@@ -25,14 +23,24 @@ boot:
 	@echo "\033[1;36m└─────────────────────────────────────────────────────┘\033[0m"
 	@echo ""
 
-# 第二阶段引导加载程序（Loader）编译
+MOUNT_POINT := /media/loe
+
 .PHONY: loader
 loader:
 	@nasm boot/loader.asm -o boot/loader.bin
-	@sudo mount /work/tools/loeux/boot.img /media/loe -t vfat -o loop
-	@sudo cp boot/loader.bin /media/loe/LOADER.BIN 
+	@if mountpoint -q $(MOUNT_POINT); then \
+		echo "\033[1;33mMount point $(MOUNT_POINT) already mounted, skipping mount.\033[0m"; \
+	else \
+		sudo mount /work/tools/loeux/boot.img $(MOUNT_POINT) -t vfat -o loop || \
+		{ echo "\033[1;31m[ERROR] Mount failed!\033[0m"; false; }; \
+	fi
+	@sudo cp boot/loader.bin $(MOUNT_POINT)/LOADER.BIN
 	@sudo sync
-	@sudo umount /media/loe
+	@if fuser -m $(MOUNT_POINT) >/dev/null 2>&1; then \
+		echo "\033[1;33mMount point $(MOUNT_POINT) is in use, skipping unmount.\033[0m"; \
+	else \
+		sudo umount $(MOUNT_POINT); \
+	fi
 	@echo ""
 	@echo "\033[1;36m┌─────────────────────────────────────────────────────┐\033[0m"
 	@echo "\033[1;36m│\033[0m  \033[1;33m    LOEUX Loader successfully compiled!            \033[0m\033[1;36m│\033[0m"
@@ -43,7 +51,31 @@ loader:
 	@echo "\033[1;36m└─────────────────────────────────────────────────────┘\033[0m"
 	@echo ""
 
-CLEAN_PATTERNS := *.o *.bin
+.PHONY: kernel
+kernel:
+	@$(MAKE) -C kernel all
+	@if mountpoint -q $(MOUNT_POINT); then \
+		echo "\033[1;33mMount point $(MOUNT_POINT) already mounted, skipping mount.\033[0m"; \
+	else \
+		sudo mount /work/tools/loeux/boot.img $(MOUNT_POINT) -t vfat -o loop || \
+		{ echo "\033[1;31m[ERROR] Mount failed!\033[0m"; false; }; \
+	fi
+	@sudo cp kernel/kernel.bin $(MOUNT_POINT)/KERNEL.BIN
+	@sudo sync
+	@if fuser -m $(MOUNT_POINT) >/dev/null 2>&1; then \
+		echo "\033[1;33mMount point $(MOUNT_POINT) is in use, skipping unmount.\033[0m"; \
+	else \
+		sudo umount $(MOUNT_POINT); \
+	fi
+	@echo ""
+	@echo "\033[1;36m┌─────────────────────────────────────────────────────┐\033[0m"
+	@echo "\033[1;36m│\033[0m  \033[1;33m    LOEUX Kernel successfully compiled!            \033[0m\033[1;36m│\033[0m"
+	@echo "\033[1;36m│\033[0m                                                     \033[1;36m│\033[0m"
+	@echo "\033[1;36m│\033[0m  \033[1;32m  Output: \033[0m kernel/kernel.bin                       \033[1;36m│\033[0m"
+	@echo "\033[1;36m│\033[0m                                                     \033[1;36m│\033[0m"
+	@echo "\033[1;36m│\033[0m  \033[1;35m         LOEUX - The OS from scratch               \033[0m\033[1;36m│\033[0m"
+	@echo "\033[1;36m└─────────────────────────────────────────────────────┘\033[0m"
+	@echo ""
 
 .PHONY: clean
 clean:
