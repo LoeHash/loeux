@@ -1,9 +1,6 @@
 #include "include/stdarg.h"
 #include "printk.h"
 
-#define PIXEL_COLOR 0x00ffffff
-#define BG_COLOR 0x00000000
-
 void init_printing()
 {
         pos.fb_addr = (unsigned int *)0xffff800000a00000;
@@ -21,13 +18,13 @@ void init_printing()
         pos.y_position = 0;
 }
 
-void color_printk(char *fmt)
+void color_printk(int front_color, int background_color, char *fmt)
 {
         char *c = fmt;
 
         while (*c != '\0')
         {
-                if (*c == CHAR_B) // 退格
+                if (*c == BACKSPACE) // 退格
                 {
                         if (pos.x_position >= pos.x_char_size)
                         {
@@ -41,28 +38,38 @@ void color_printk(char *fmt)
 
                         // 获取起始指针
                         int *char_start_ptr = (int *)(X_Y_PIXEL_POSITION_TO_ADDR(pos.x_position, pos.y_position, pos));
-                        draw_char((int *)char_start_ptr, (int)' ');
+                        draw_char(front_color, background_color, (int *)char_start_ptr, (int)' ');
                 }
-                else if (*c == CHAR_N)
+                else if (*c == NEWLINE)
                 {
                         // 我们只需要将y的数值 + 16, 同时置x为0
                         pos.y_position += pos.y_char_size;
                         pos.x_position = 0;
                 }
-                else if (*c == CHAR_T)
+                else if (*c == HT)
                 {
-                        // 如果x 等于1440, 则静默处理
-                        if (!(pos.x_position == 1440))
+                        pos.x_position = NEXT_TAB_POS(pos.x_position);
+
+                        // 如果超出屏幕宽度，换行
+                        if (pos.x_position >= pos.x_resolution)
                         {
-                                pos.x_position = NEXT_TAB_POS(pos.x_position);
+                                pos.x_position = 0;
+                                pos.y_position += pos.y_char_size;
                         }
                 }
                 else
                 {
+                        // 新起一行
+                        if (pos.x_position >= pos.x_resolution)
+                        {
+                                pos.x_position = 0;
+                                pos.y_position += pos.y_char_size;
+                        }
+
                         // 获取起始指针
                         int *char_start_ptr = (int *)(X_Y_PIXEL_POSITION_TO_ADDR(pos.x_position, pos.y_position, pos));
 
-                        draw_char(char_start_ptr, (int)*c);
+                        draw_char(front_color, background_color, char_start_ptr, (int)*c);
 
                         // 更新x位置
                         pos.x_position += pos.x_char_size;
@@ -71,7 +78,7 @@ void color_printk(char *fmt)
         }
 }
 
-void draw_char(int *start, int ascii_index)
+void draw_char(int front_color, int background_color, int *start, int ascii_index)
 {
 
         const unsigned char *c = font_ascii_bitmap[ascii_index];
@@ -82,11 +89,11 @@ void draw_char(int *start, int ascii_index)
                 {
                         if (GET_BIT(c[i], j))
                         {
-                                *(((int *)(start + i * 1440) + j)) = (int)0xffffff;
+                                *(((int *)(start + i * 1440) + j)) = front_color;
                         }
                         else
                         {
-                                *(((int *)(start + i * 1440) + j)) = (int)0;
+                                *(((int *)(start + i * 1440) + j)) = background_color;
                         }
                 }
         }
