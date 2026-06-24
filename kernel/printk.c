@@ -1,6 +1,7 @@
 #include "include/stdarg.h"
 #include "include/stddef.h"
 #include "include/stdint.h"
+#include "include/lib.h"
 #include "printk.h"
 
 static char print_str_buffer[PRINT_BUFFER_SIZE];
@@ -22,11 +23,15 @@ void init_printing()
         // 初始光标位置
         pos.x_position = 0;
         pos.y_position = 0;
+
+        // 颜色深度bytes
+        pos.color_deepth = 4;
+
+        pos.fb_length = (pos.x_resolution * pos.y_resolution * pos.color_deepth);
+
+        // 设置帧缓冲区长度指针
+        pos.fb_end = (unsigned long *)(((char *)pos.fb_addr) + pos.fb_length);
 }
-
-// static void mmove(){
-
-// }
 
 // 辅助：将整数写入 num 缓冲区，返回字符数
 // base: 进制（8,10,16），uppercase 仅对十六进制有效
@@ -66,6 +71,11 @@ static int format_number(char *num, unsigned long long value, int base,
                 num[i] = p[i];
         num[len] = '\0';
         return len;
+}
+
+static void clear_screen()
+{
+        memset((void *)pos.fb_addr, 0, pos.fb_length);
 }
 
 // 主函数：格式化输出到 buf
@@ -645,13 +655,13 @@ int vsprintf(char *buf, const char *fmt, ...)
 //         }
 // }
 
-void _flush_print_buffer(int color_front, int color_back)
-{
-        print_str_buffer[ch_ptr] = '\0';
-        color_printk(color_front, color_back, print_str_buffer);
-        buffer_used = 0,
-        ch_ptr = 0;
-}
+// void _flush_print_buffer(int color_front, int color_back)
+// {
+//         print_str_buffer[ch_ptr] = '\0';
+//         color_printk(color_front, color_back, print_str_buffer);
+//         buffer_used = 0,
+//         ch_ptr = 0;
+// }
 
 /**
  * 打印纯字符串
@@ -683,6 +693,10 @@ void color_printk(int front_color, int background_color, char *fmt)
                         // 我们只需要将y的数值 + 16, 同时置x为0
                         pos.y_position = pos.y_position + pos.y_char_size >= pos.y_resolution ? 0 : pos.y_position + pos.y_char_size;
                         pos.x_position = 0;
+                        if (pos.y_position == 0)
+                        {
+                                clear_screen();
+                        }
                 }
                 else if (*c == HT)
                 {
@@ -693,6 +707,11 @@ void color_printk(int front_color, int background_color, char *fmt)
                         {
                                 pos.x_position = 0;
                                 pos.y_position = pos.y_position + pos.y_char_size >= pos.y_resolution ? 0 : pos.y_position + pos.y_char_size;
+
+                                if (pos.y_position == 0)
+                                {
+                                        clear_screen();
+                                }
                         }
                 }
                 else
@@ -702,6 +721,10 @@ void color_printk(int front_color, int background_color, char *fmt)
                         {
                                 pos.x_position = 0;
                                 pos.y_position = pos.y_position + pos.y_char_size >= pos.y_resolution ? 0 : pos.y_position + pos.y_char_size;
+                                if (pos.y_position == 0)
+                                {
+                                        clear_screen();
+                                }
                         }
 
                         // 获取起始指针
@@ -725,14 +748,8 @@ void draw_char(int front_color, int background_color, int *start, int ascii_inde
         {
                 for (j = 0; j < pos.x_char_size; j++)
                 {
-                        if (GET_BIT(c[i], j))
-                        {
-                                *(((int *)(start + i * 1440) + j)) = front_color;
-                        }
-                        else
-                        {
-                                *(((int *)(start + i * 1440) + j)) = background_color;
-                        }
+
+                        *(((int *)(start + i * 1440) + j)) = GET_BIT(c[i], j) ? front_color : background_color;
                 }
         }
 }

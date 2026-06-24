@@ -33,7 +33,10 @@ typedef struct position
         int y_char_size;
 
         unsigned int *fb_addr;
-        // unsigned long *fb_length;
+
+        unsigned int color_deepth;
+        unsigned long fb_length;
+        unsigned long *fb_end; //(bytes unit.)
 } position;
 
 static position pos = {0};

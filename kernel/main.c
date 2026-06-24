@@ -4,6 +4,7 @@
 #include "printk.h"
 #include "include/stddef.h"
 #include "include/stdint.h"
+
 #define COLOR_RIBBON_WEITH 25
 #define GET_BIT(val, n) (((val) >> (n)) & 1)
 
@@ -20,7 +21,6 @@ void kernel_start(void)
         vsprintf(buf, "hello world!%d\n", 100);
         color_printk(0xffffff, 0, buf);
 
-        // test_vsprintf();
         while (1)
         {
                 color_printk(0xffffff, 0, buf);
