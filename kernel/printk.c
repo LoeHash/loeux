@@ -24,6 +24,10 @@ void init_printing()
         pos.y_position = 0;
 }
 
+// static void mmove(){
+
+// }
+
 // 辅助：将整数写入 num 缓冲区，返回字符数
 // base: 进制（8,10,16），uppercase 仅对十六进制有效
 // sign: 0 无符号，1 有符号（正号、空格在外部处理）
@@ -677,7 +681,7 @@ void color_printk(int front_color, int background_color, char *fmt)
                 else if (*c == NEWLINE)
                 {
                         // 我们只需要将y的数值 + 16, 同时置x为0
-                        pos.y_position += pos.y_char_size;
+                        pos.y_position = pos.y_position + pos.y_char_size >= pos.y_resolution ? 0 : pos.y_position + pos.y_char_size;
                         pos.x_position = 0;
                 }
                 else if (*c == HT)
@@ -688,7 +692,7 @@ void color_printk(int front_color, int background_color, char *fmt)
                         if (pos.x_position >= pos.x_resolution)
                         {
                                 pos.x_position = 0;
-                                pos.y_position += pos.y_char_size;
+                                pos.y_position = pos.y_position + pos.y_char_size >= pos.y_resolution ? 0 : pos.y_position + pos.y_char_size;
                         }
                 }
                 else
@@ -697,7 +701,7 @@ void color_printk(int front_color, int background_color, char *fmt)
                         if (pos.x_position >= pos.x_resolution)
                         {
                                 pos.x_position = 0;
-                                pos.y_position += pos.y_char_size;
+                                pos.y_position = pos.y_position + pos.y_char_size >= pos.y_resolution ? 0 : pos.y_position + pos.y_char_size;
                         }
 
                         // 获取起始指针

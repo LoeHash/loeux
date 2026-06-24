@@ -13,7 +13,7 @@ int strcmp(const char *a, const char *b);
 void kernel_start(void)
 {
         char buf[1024];
-
+        int delay = 0;
         init_printing();
         print_tests();
 
@@ -23,7 +23,13 @@ void kernel_start(void)
         // test_vsprintf();
         while (1)
         {
+                color_printk(0xffffff, 0, buf);
                 // 空循环
+                while (delay <= 5000000)
+                {
+                        delay++;
+                }
+                delay = 0;
         }
 }
 
