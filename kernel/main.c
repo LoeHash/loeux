@@ -23,6 +23,8 @@ void kernel_start(void)
 
         while (1)
         {
+                print_tests();
+
                 color_printk(0xffffff, 0, buf);
                 // 空循环
                 while (delay <= 5000000)

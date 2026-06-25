@@ -40,4 +40,35 @@ static inline void *memset(void *ptr, int value, size_t num)
         return ptr;
 }
 
+/**
+ * memcpy - 拷贝内存区域（不允许重叠）
+ * @dest:  目标地址
+ * @src:   源地址
+ * @num:   字节数
+ *
+ * 返回 dest 指针（标准 memcpy 语义）
+ */
+static inline void *memcpy(void *dest, const void *src, size_t num)
+{
+        unsigned long *d = (unsigned long *)dest;
+        const unsigned long *s = (const unsigned long *)src;
+        size_t qwords = num / 8; /* 完整 8 字节块数 */
+        size_t tail = num % 8;   /* 剩余字节数 */
+        /* 核心拷贝：使用 rep movsq 一次拷贝 8 字节，重复 qwords 次 */
+        __asm__ volatile(
+            "cld\n\t"
+            "rep movsq"
+            : "+D"(d), "+c"(qwords), "+S"(s)
+            :
+            : "memory");
+        /* 处理剩余字节（小于 8） */
+        unsigned char *cd = (unsigned char *)d;
+        const unsigned char *cs = (const unsigned char *)s;
+        while (tail--)
+        {
+                *cd++ = *cs++;
+        }
+        return dest;
+}
+
 #endif

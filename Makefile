@@ -1,4 +1,4 @@
-CLEAN_PATTERNS := *.o *.bin
+CLEAN_PATTERNS := *.o *.bin system an
 
 
 
