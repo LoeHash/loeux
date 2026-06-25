@@ -3,41 +3,29 @@
 #include "fonts/font.h"
 #include "printk.h"
 #include "include/stddef.h"
+#include "include/stdbool.h"
 #include "include/stdint.h"
 
 #define COLOR_RIBBON_WEITH 25
 #define GET_BIT(val, n) (((val) >> (n)) & 1)
+#define mian main
 
 static void print_tests();
 int strcmp(const char *a, const char *b);
-
 void kernel_start(void)
 {
-        char buf[1024];
-        int delay = 0;
+
         init_printing();
         print_tests();
 
-        vsprintf(buf, "hello world!%d\n", 100);
-        color_printk(0xffffff, 0, buf);
-
-        while (1)
+        while (true)
         {
-                print_tests();
-
-                color_printk(0xffffff, 0, buf);
-                // 空循环
-                while (delay <= 5000000)
-                {
-                        delay++;
-                }
-                delay = 0;
         }
 }
 
 void print_tests()
 {
-        color_printk(0x00ff00, 0x0A0C0E, "Booting The Loeux Kernel.... Please Wait...");
+        color_printk(0xcd3333, 0x0A0C0E, "Booting The Loeux Kernel.... Please Wait...");
 
         // 测试2：制表符测试
         color_printk(0x00ffff, 0x0A0C0E, "\n\nTab Test:\n");

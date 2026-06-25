@@ -42,11 +42,9 @@ typedef struct position
 static position pos = {0};
 
 void init_printing();
-
 int vsprintf(char *buf, const char *fmt, ...);
-
 void color_printk(int front_color, int background_color, char *fmt);
-
 void draw_char(int front_color, int background_color, int *start, int ascii_index);
+void reset_xy_position();
 
 #endif
