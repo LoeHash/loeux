@@ -18,6 +18,7 @@ void kernel_start(void)
         init_printing();
         print_tests();
 
+        int i = 1 / 0;
         while (true)
         {
         }
