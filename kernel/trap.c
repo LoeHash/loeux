@@ -364,6 +364,9 @@ void do_virtualization_exception(unsigned long rsp, unsigned long error_code)
 // 具体实现在汇编entry.S中
 void sys_vector_init()
 {
+        load_TR(8);
+        set_tss64(0xffff800000007c00, 0xffff800000007c00, 0xffff800000007c00, 0xffff800000007c00, 0xffff800000007c00, 0xffff800000007c00, 0xffff800000007c00, 0xffff800000007c00, 0xffff800000007c00, 0xffff800000007c00);
+
         set_trap_gate(0, 1, divide_error);
         set_trap_gate(1, 1, debug);
         set_intr_gate(2, 1, nmi);

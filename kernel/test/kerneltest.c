@@ -6,7 +6,153 @@
 #include "../include/stdint.h"
 #include "../gate.h"
 #include "../trap.h"
+#include "../include/stdint.h"
+#include "kerneltest.h"
 
+void vector_tests(int test_num)
+{
+        switch (test_num)
+        {
+        case 0:
+        { // #DE - Divide Error
+                volatile int x = 1, y = 0;
+                volatile int z = x / y; // 运行时除零
+                (void)z;
+                break;
+        }
+        case 1:
+        { // #DB - Debug Exception
+                // 方法：设置 TF 标志（单步），但这样会一直触发。改用 INT1 指令（64位模式下可能被当作UD，但多数CPU仍支持）
+                __asm__ __volatile__("int $1");
+                break;
+        }
+        case 2:
+        { // NMI - 不可屏蔽中断，软件无法直接产生
+                // 无可靠触发方式，直接返回
+                break;
+        }
+        case 3:
+        { // #BP - Breakpoint
+                __asm__ __volatile__("int3");
+                break;
+        }
+        case 4:
+        { // #OF - Overflow (INT0 指令在现代 x86 中已失效，但 INT4 仍有效)
+                __asm__ __volatile__("int $4");
+                break;
+        }
+        case 5:
+        { // #BR - BOUND Range Exceeded (BOUND 指令已废弃，改用 INT5)
+                __asm__ __volatile__("int $5");
+                break;
+        }
+        case 6:
+        { // #UD - Invalid Opcode
+                __asm__ __volatile__("ud2");
+                break;
+        }
+        case 7:
+        { // #NM - Device Not Available
+                unsigned long cr0;
+                __asm__ __volatile__("mov %%cr0, %0" : "=r"(cr0));
+                cr0 |= (1 << 3); // 置 TS 位
+                __asm__ __volatile__("mov %0, %%cr0" : : "r"(cr0));
+                // 现在执行一条 FPU 指令触发 #NM
+                __asm__ __volatile__("fnop");
+                // 恢复 TS 位（可选）
+                break;
+        }
+        case 8:
+        { // #DF - Double Fault (极难用软件触发，通常由错误 IDT 引起，危险)
+                // 建议不测试，直接返回
+                break;
+        }
+        case 9:
+        { // Coprocessor Segment Overrun (386 遗留，不产生)
+                break;
+        }
+        case 10:
+        { // #TS - Invalid TSS
+                // 使用指向非法段选择子的 LTR 指令可触发
+                __asm__ __volatile__("ltr %0" : : "r"((unsigned short)0x1000));
+                break;
+        }
+        case 11:
+        { // #NP - Segment Not Present
+                // 使用指向不存在描述符的段寄存器加载指令
+                __asm__ __volatile__("mov %0, %%es" : : "r"((unsigned short)0x0030));
+                break;
+        }
+        case 12:
+        { // #SS - Stack Segment Fault
+                // 使用栈段越界（例如在 SS 段换入时加载非法选择子）例如通过 far ret 或 lss
+                // 简单做法：加载一个无法访问的 SS 选择子
+                __asm__ __volatile__("mov %0, %%ss" : : "r"((unsigned short)0x0050));
+                break;
+        }
+        case 13:
+        { // #GP - General Protection
+                // 执行特权指令（如 HLT）在 CPL=0 下不会触发，但写保留 CR 寄存器可以
+                __asm__ __volatile__("mov %0, %%cr0" : : "r"((unsigned long)0xFFFFFFFF));
+                break;
+        }
+        case 14:
+        { // #PF - Page Fault
+                // 解引用一个无效地址
+                volatile unsigned long *ptr = (unsigned long *)0xDEADBEEF;
+                volatile unsigned long val = *ptr;
+                (void)val;
+                break;
+        }
+        case 15:
+        { // Intel Reserved - 不测试
+                break;
+        }
+        case 16:
+        { // #MF - x87 FPU Error
+                // 触发一个 FPU 异常（例如除零）
+                unsigned short cw;
+                __asm__ __volatile__("fnstcw %0" : "=m"(cw));
+                cw &= ~(1 << 2); // 清除除零屏蔽位
+                __asm__ __volatile__("fldcw %0" : : "m"(cw));
+                volatile double a = 1.0, b = 0.0;
+                volatile double c = a / b; // 触发 FPU 除零，产生 #MF
+                (void)c;
+                break;
+        }
+        case 17:
+        { // #AC - Alignment Check
+                // 需要对齐检查启用：CR0.AM=1, EFLAGS.AC=1
+                unsigned long cr0;
+                __asm__ __volatile__("pushfq; popq %0" : "=r"(cr0));
+                // 但更简单：执行一个未对齐访问（且对齐检查已启用）
+                // 由于当前内核可能未启用对齐检查，此测试可能无效
+                // 直接执行 MOV 未对齐：
+                __asm__ __volatile__("movaps %%xmm0, %0" : "=m"(*(unsigned long *)0x100001));
+                break;
+        }
+        case 18:
+        { // #MC - Machine Check (硬件错误，不可软件触发)
+                break;
+        }
+        case 19:
+        { // #XM - SIMD Floating-Point Exception
+                // 触发 SSE 除零异常（需要取消屏蔽）
+                unsigned int mxcsr;
+                __asm__ __volatile__("stmxcsr %0" : "=m"(mxcsr));
+                mxcsr &= ~(1 << 7); // 清除除零屏蔽位 (bit 7)
+                __asm__ __volatile__("ldmxcsr %0" : : "m"(mxcsr));
+                __asm__ __volatile__("divss %0, %%xmm0" : : "m"(*(float *)0x12345678));
+                break;
+        }
+        case 20:
+        { // #VE - Virtualization Exception (需在 VMX 根模式下，一般不会发生)
+                break;
+        }
+        default:
+                break;
+        }
+}
 void print_tests()
 {
         color_printk(0xcd3333, 0x0A0C0E, "Booting The Loeux Kernel.... Please Wait...");

@@ -20,11 +20,8 @@ void kernel_start(void)
         print_tests();
 
         // 初始化中断向量
-        load_TR(8);
-        set_tss64(0xffff800000007c00, 0xffff800000007c00, 0xffff800000007c00, 0xffff800000007c00, 0xffff800000007c00, 0xffff800000007c00, 0xffff800000007c00, 0xffff800000007c00, 0xffff800000007c00, 0xffff800000007c00);
         sys_vector_init();
-
-        int i = 1 / 0;
+        vector_tests(1);
 
         while (true)
         {
