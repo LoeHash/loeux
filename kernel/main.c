@@ -6,9 +6,10 @@
 #include "include/stddef.h"
 #include "include/stdbool.h"
 #include "include/stdint.h"
+#include "mm/mminfo.h"
+#include "test/kerneltest.h"
 #include "gate.h"
 #include "trap.h"
-#include "test/kerneltest.h"
 
 #define COLOR_RIBBON_WEITH 25
 #define GET_BIT(val, n) (((val) >> (n)) & 1)
@@ -16,12 +17,16 @@
 void kernel_start(void)
 {
 
+        // 初始化打印操作
         init_printing();
-        print_tests();
+
+        printk(0xcd3333, 0x0A0C0E, "Booting The Loeux Kernel.... Please Wait...\n");
 
         // 初始化中断向量
-        sys_vector_init();
-        vector_tests(1);
+        init_sys_vector();
+
+        // 初始化内存模块
+        init_memory();
 
         while (true)
         {

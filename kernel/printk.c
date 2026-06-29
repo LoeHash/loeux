@@ -8,6 +8,8 @@ static char print_str_buffer[PRINT_BUFFER_SIZE];
 static int ch_ptr = 0;
 static int buffer_used = 0;
 
+position pos = {0};
+
 void init_printing()
 {
         pos.fb_addr = (unsigned int *)0xffff800000a00000;
@@ -663,7 +665,7 @@ int vsprintf(char *buf, const char *fmt, ...)
 //         ch_ptr = 0;
 // }
 
-void color_fmt_printk(int front_color, int background_color, char *fmt, ...)
+void printk(int front_color, int background_color, char *fmt, ...)
 {
 
         va_list args;
@@ -672,6 +674,12 @@ void color_fmt_printk(int front_color, int background_color, char *fmt, ...)
         vsprintf(buf, fmt, args); // 将 va_list 传递给 vsprintf
         va_end(args);
         color_printk(front_color, background_color, buf);
+}
+
+void reset_xy_position()
+{
+        pos.x_position = 0;
+        pos.y_position = 0;
 }
 
 /**

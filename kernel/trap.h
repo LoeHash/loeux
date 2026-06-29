@@ -31,6 +31,6 @@ extern void virtualization_exception();
 
 */
 
-void sys_vector_init();
+void init_sys_vector();
 
 #endif

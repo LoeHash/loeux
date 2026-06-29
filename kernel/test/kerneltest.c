@@ -155,7 +155,6 @@ void vector_tests(int test_num)
 }
 void print_tests()
 {
-        color_printk(0xcd3333, 0x0A0C0E, "Booting The Loeux Kernel.... Please Wait...");
 
         // 测试2：制表符测试
         color_printk(0x00ffff, 0x0A0C0E, "\n\nTab Test:\n");

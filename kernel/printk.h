@@ -39,12 +39,12 @@ typedef struct position
         unsigned long *fb_end; //(bytes unit.)
 } position;
 
-static position pos = {0};
+extern position pos;
 
 void init_printing();
 int vsprintf(char *buf, const char *fmt, ...);
 void color_printk(int front_color, int background_color, char *fmt);
 void draw_char(int front_color, int background_color, int *start, int ascii_index);
 void reset_xy_position();
-void color_fmt_printk(int front_color, int background_color, char *fmt, ...);
+void printk(int front_color, int background_color, char *fmt, ...);
 #endif
