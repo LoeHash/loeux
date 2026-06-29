@@ -4,6 +4,7 @@
 # 1 "/usr/include/stdc-predef.h" 1 3 4
 # 0 "<command-line>" 2
 # 1 "head.S"
+# 16 "head.S"
 .section .text
 
 .globl _start
@@ -56,7 +57,6 @@ entry64:
  movq %rax, %ss
  movq $0xffff800000007E00, %rsp
 
-
 setup_IDT:
  leaq ignore_int(%rip), %rdx
  movq $(0x08 << 16), %rax
@@ -98,8 +98,8 @@ setup_TSS64:
  shrq $32, %rdx
  movq %rdx, 72(%rdi)
 
- mov $0x40, %ax
- ltr %ax
+
+
 
  movq go_to_kernel(%rip), %rax
  pushq $0x08
@@ -108,6 +108,9 @@ setup_TSS64:
 
 go_to_kernel:
  .quad kernel_start
+
+
+
 
 ignore_int:
  cld
@@ -174,7 +177,6 @@ Loop:
 
 int_msg:
  .asciz "Unknown interrupt or fault at RIP\n"
-
 
 
 .align 8
@@ -254,6 +256,7 @@ IDT_BASE: .quad IDT_Table
 TSS64_Table:
  .fill 13,8,0
 TSS64_END:
+
 
 TSS64_POINTER:
 TSS64_LIMIT: .word TSS64_END - TSS64_Table - 1

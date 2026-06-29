@@ -663,6 +663,17 @@ int vsprintf(char *buf, const char *fmt, ...)
 //         ch_ptr = 0;
 // }
 
+void color_fmt_printk(int front_color, int background_color, char *fmt, ...)
+{
+
+        va_list args;
+        char buf[PRINT_BUFFER_SIZE];
+        va_start(args, fmt);
+        vsprintf(buf, fmt, args); // 将 va_list 传递给 vsprintf
+        va_end(args);
+        color_printk(front_color, background_color, buf);
+}
+
 /**
  * 打印纯字符串
  */
