@@ -6,7 +6,7 @@ OBJECTS = $(C_SOURCES:.c=.o) $(ASM_SOURCES:.S=.o)
 all: system
 	objcopy -I elf64-x86-64 -S -R ".eh_frame" -R ".comment" -O binary system kernel.bin
 
-system: head.o $(OBJECTS)
+system: head.o $(OBJECTS) kerneltest.o
 	ld -b elf64-x86-64 -o system $^ -T Kernel.lds
 
 head.o:	head.S
@@ -26,6 +26,8 @@ printk.o: printk.c
 trap.o: trap.c
 	gcc  -mcmodel=large -fno-builtin -m64 -c trap.c
 
+kerneltest.o: test/kerneltest.c
+	gcc  -mcmodel=large -fno-builtin -m64 -c test/kerneltest.c
 
 clean:
 	rm -rf *.o *.s system kernel.bin
