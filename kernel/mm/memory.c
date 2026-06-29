@@ -8,11 +8,6 @@ meminfo mem_info = {0};
 void init_memory()
 {
         detect_mem_info();
-
-        printk(GREEN, BLACK, "memory info detected: \n");
-        printk(KHAKI, BLACK, "\t\tmemory base address: %p", (void *)mem_info.mem_base_addr);
-        printk(KHAKI, BLACK, "\t\tmemory length: %lu", mem_info.mem_length);
-        printk(KHAKI, BLACK, "\t\tmemory type: %u", mem_info.mem_type);
 }
 
 void detect_mem_info()
@@ -30,4 +25,9 @@ void detect_mem_info()
         {
                 panic(PANIC_ERROR, "can't gather memory type!\n");
         }
+
+        printk(GREEN, BLACK, "memory info detected: \n");
+        printk(KHAKI, BLACK, "\t\tmemory base address: %p", (void *)mem_info.mem_base_addr);
+        printk(KHAKI, BLACK, "\t\tmemory length: %lu", mem_info.mem_length);
+        printk(KHAKI, BLACK, "\t\tmemory type: %u", mem_info.mem_type);
 }
